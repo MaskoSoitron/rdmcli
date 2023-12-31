@@ -2,20 +2,20 @@
 
 ## Function to show help information
 show_help() {
-  echo "Usage: rdmotp [command]"
+  echo "Usage: rdmotpl [command]"
   echo "If no command is provided, the script will list all OTP sessions in RDM. And prompt the user to choose one."
   echo "------------------------------------"
   echo "Requirements: powershell, Devolutions.Powershell module"
   echo "-----------------------------------"
-  echo "Commands: - rdmotp command"
+  echo "Commands: - rdmotpl command"
   echo "  help: Show this help information."
   echo "  config: Set up initial configuration."
   echo "  refresh: Refresh OTP cache."
   echo "Supported options: None"
 }
 
-# Function to configure rdmotp
-configure_rdmotp() {
+# Function to configure rdmotpl
+configure_rdmotpl() {
   currentuser=$(whoami)
   configFilePath="/Users/$currentuser/rdmcli/rdm.conf"
 
@@ -35,16 +35,23 @@ configure_rdmotp() {
   fi
 
   # Write configuration to the file
-  echo -e "#Type data source name which you want to use (private vault is always available) - only DPS Server data source currently supported\n#Replace defaults with your information\ndatasource = DataSourceName\nvault = VaultName"\npersonaldatasource = PersonalDataSourceName" > "$configFilePath"
+  cat <<EOF > "$configFilePath"
+# Type data source name which you want to use (private vault is always available) - only DPS Server data source currently supported
+# Replace defaults with your information
+datasource = DataSourceName
+vault = VaultName
+personaldatasource = PersonalDataSourceName
+EOF
+
   echo "Configuration file created at $configFilePath"
 }
 
 # Function to refresh OTP cache
-refresh_rdmotp_cache() {
+refresh_rdmotpl_cache() {
   currentuser=$(whoami)
-  cacheFile="/Users/$currentuser/rdmcli/rdmotp-cache.txt"
+  cacheFile="/Users/$currentuser/rdmcli/rdmotpl-cache.txt"
   rm -f "$cacheFile"
-  echo "Cache file deleted. You can now run 'rdmotp' to refresh it."
+  echo "Cache file deleted. You can now run 'rdmotpl' to refresh it."
 }
 
 # Check for special commands
@@ -52,10 +59,10 @@ if [ "$1" == "help" ]; then
   show_help
   exit 0
 elif [ "$1" == "config" ]; then
-  configure_rdmotp
+  configure_rdmotpl
   exit 0
 elif [ "$1" == "refresh" ]; then
-  refresh_rdmotp_cache
+  refresh_rdmotpl_cache
   exit 0
 fi
 
@@ -64,7 +71,7 @@ echo "Listing OTP accounts from RDM..."
 
 # Run the PowerShell script and pass the username and address as arguments
 currentuser=$(whoami)
-cacheFile="/Users/$currentuser/rdmcli/rdmotp-cache.txt"
+cacheFile="/Users/$currentuser/rdmcli/rdmotpl-cache.txt"
 # Check if cache file exists and is not older than 7 days
 if [ -f "$cacheFile" ]; then
   if test "`find "$cacheFile" -mtime +7`"; then
@@ -75,7 +82,7 @@ fi
 
 # Search otp accounts in RDM
 if [ ! -f "$cacheFile" ]; then
-    result=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/rdmcli/rdmotp-helper1.ps1)
+    result=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/rdmcli/rdmotpl-helper1.ps1)
 fi
 # If cache file exists, use it
 if [ -f "$cacheFile" ]; then
@@ -83,7 +90,7 @@ if [ -f "$cacheFile" ]; then
 fi
 
 # Create cache file so next time we don't need to run the script again
-echo "$result" > "/Users/$currentuser/rdmcli/rdmotp-cache.txt"
+echo "$result" > "/Users/$currentuser/rdmcli/rdmotpl-cache.txt"
 
 
 # Parse the result to extract OTP sessions
@@ -96,7 +103,7 @@ done <<< "$result"
 
 # Prompt the user to choose an OTP session
 if [ "${#otp_sessions[@]}" -eq 0 ]; then
-  echo "No OTP sessions found. Try running 'rdmotp refresh' to refresh the cache."
+  echo "No OTP sessions found. Try running 'rdmotpl refresh' to refresh the cache."
   exit 1
 else
   echo "Choose an OTP session by entering the corresponding number:"
@@ -111,7 +118,7 @@ else
   done
 fi
 
-otpcode=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/rdmcli/rdmotp-helper2.ps1 $otp_id)
+otpcode=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/rdmcli/rdmotpl-helper2.ps1 $otp_id)
 otpcode=$(echo "$otpcode" | tr -d '\n')
 echo -n "$otpcode" | pbcopy
 echo "OTP code: $otpcode was copied to the clipboard." 
