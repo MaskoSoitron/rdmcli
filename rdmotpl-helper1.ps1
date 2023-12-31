@@ -37,30 +37,43 @@ if (Test-Path $rdmsshConfig) {
 }
 # Import Module
 Import-Module Devolutions.PowerShell | Out-Null
+Write-Host "Importing ps module..."
 # Set data source
-Get-RDMDataSource -ForcePromptAnswer yes | where {$_.Name -eq "$dataSource"} | Set-RDMcurrentDataSource -ForcePromptAnswer yes
+Get-RDMDataSource | where {$_.Name -eq "$dataSource"} | Set-RDMcurrentDataSource
+Write-Host "Data source set to $dataSource"
+$SelectedSource = Get-RDMCurrentDataSource
+Write-Host "Current data source is $SelectedSource"
 # Find sessions
 $sharedSessions = Get-RDMSession -ForcePromptAnswer yes
+Write-Host "Getting sessions..."
+write-host "Found $($sharedSessions.count) sessions"
 # Define initial searches
 $search1 = $sharedSessions | Where-Object { $_.Name -like "*_otp" -or $_.Group -eq "OTP"} | Select-Object Name,Id
+write-host "Found $($search1.count) otp sessions"
+
+# Specify the output file path
+$outputFilePath = Join-Path -Path $rdmsshConfigFolder -ChildPath "rdmotpl-cache.txt"
+
+# Generate the header
+$header = @"
+_______________________________________
+Listing all otp sessions
+_______________________________________
+"@
 
 # List all otp sessions
-#Write-Host -ForegroundColor Green "_______________________________________"
-#Write-Host -ForegroundColor Blue "Listing all otp sessions"
-#Write-Host -ForegroundColor Green "_______________________________________"
-    $sessionNumber = 1
-    $resultNumber = 1
-    $result = @()
+Write-Host -ForegroundColor Green $header  # Display the header
+$result = @($header) + $result  # Add the header to the results
 
-    if ($search1.Count -gt 0) {
-        foreach ($session in $search1) {
-            $output = "$sessionNumber. - $($session.Name)`t$($session.Id)"
-            Write-Host -ForegroundColor Green $output
-            $resultVariable = "result$resultNumber"
-            New-Variable -Name $resultVariable -Value $output -Force
-            $result += $resultVariable
-            $sessionNumber++
-            $resultNumber++
-        }
-    }
+$sessionNumber = 1
+$resultNumber = 1
 
+foreach ($session in $search1) {
+    $output = "$sessionNumber. - $($session.Name)`t$($session.Id)"
+    Write-Host -ForegroundColor Green $output
+    $resultVariable = "result$resultNumber"
+    New-Variable -Name $resultVariable -Value $output -Force
+    $result += $resultVariable
+    $sessionNumber++
+    $resultNumber++
+}
