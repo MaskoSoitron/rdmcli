@@ -2,8 +2,10 @@
 Requirements: sshpass, powershell, Devolutions.Powershell module
 ------------------------------------
 
-This tool allows you to use command "rdmssh"
+This tool allows you to use command "rdmssh" and "rdmotp"
 rdmssh is equivalent of classic ssh, but it can take passwords from Devolutions RemoteDesktopManager and use it in your ssh session
+rdmotp searches for all OTP credentials in you RDM client, and then prompts you which one you want to see and copy to your clipboard.
+rdmotp assumes that all OTP credentials have name ending with "_otp", because there is no other automated way to differentiate standard username/password object and otp code object in RDM
 
 ------------------------------------
 INSTALL
@@ -16,18 +18,6 @@ it will create rdmssh folder in current working dir
 then
 cd rdmssh && chmod +x ./rdmotp && chmod +x ./rdmssh && chmod +x ./install.sh && ./install.sh
 
-------------------------------------
-SETUP
-------------------------------------
-1. copy to ~/RDMExtras
-mkdir -p ~/RDMExtras
-cp rdmssh/* ~/RDMExtras
-
-2. Add to bash_profile
-vi ~/.bash_profile
-export PATH="~/RDMExtras:$PATH"
-
-3. Setup
 rdmssh config
 rdmssh help
 
