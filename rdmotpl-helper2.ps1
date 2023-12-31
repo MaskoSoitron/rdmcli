@@ -18,6 +18,7 @@ if ($osType -eq "Windows") {
     $rdmsshConfigFolder = "/Users/$currentUserName/rdmcli"
 }
 $dataSource = ""
+$vaultName = ""
 
 # Check if the configuration file exists
 if (Test-Path $rdmsshConfig) {
@@ -35,11 +36,14 @@ if (Test-Path $rdmsshConfig) {
     Write-Host "Configuration file not found: $rdmsshConfig run 'rdmotp config' to create it"
     exit
 }
+
 # Import Module
 Import-Module Devolutions.PowerShell | Out-Null
 # Set data source
-$dsid = Get-RDMDataSource -ForcePromptAnswer yes | where {$_.Name -eq "$dataSource"} | select ID
-Set-RDMCurrentDataSource -ID $dsid.id -ForcePromptAnswer yes
+$datasourceID = Get-RDMDataSource -Name $dataSource -ForcePromptAnswer yes 
+$setDataSource = Set-RDMcurrentDataSource -ForcePromptAnswer yes -ID $datasourceID.ID
+start-sleep -s 1
+$currentDataSource = Get-RDMcurrentDataSource
 
 $otpID = $args[0]
 

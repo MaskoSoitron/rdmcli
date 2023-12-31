@@ -35,14 +35,7 @@ configure_rdmotpl() {
   fi
 
   # Write configuration to the file
-  cat <<EOF > "$configFilePath"
-# Type data source name which you want to use (private vault is always available) - only DPS Server data source currently supported
-# Replace defaults with your information
-datasource = DataSourceName
-vault = VaultName
-personaldatasource = PersonalDataSourceName
-EOF
-
+  echo -e "#Type data source name which you want to use (private vault is always available) - only DPS Server data source currently supported\n#Replace defaults with your information\ndatasource = DataSourceName\nvault = VaultName\npersonaldatasource = PersonalDataSourceName" > "$configFilePath"
   echo "Configuration file created at $configFilePath"
 }
 
@@ -82,7 +75,10 @@ fi
 
 # Search otp accounts in RDM
 if [ ! -f "$cacheFile" ]; then
-    result=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/rdmcli/rdmotpl-helper1.ps1)
+    tempFile=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/rdmcli/rdmotpl-helper1.ps1)
+    echo "Temp file: $tempFile"
+    result=$(cat "$tempFile")
+    echo "Results: $result"
 fi
 # If cache file exists, use it
 if [ -f "$cacheFile" ]; then
@@ -109,15 +105,14 @@ else
   echo "Choose an OTP session by entering the corresponding number:"
   select otp_choice in "${otp_sessions[@]}"; do
     if [ -n "$otp_choice" ]; then
-      otp_id=$(echo "$otp_choice" | awk -F ' - ' '{print $NF}' | awk '{$1=$1};1')  # Extract the OTP ID and trim whitespace
+      otpID="${otp_choice%% - *}"  # Extract the OTP ID
+      otp_id=$(echo "$otp_choice" | awk '{print $NF}')
       break
     else
       echo "Invalid selection. Please choose a number from the list."
     fi
   done
 fi
-
-echo "OTP ID: $otp_id"
 
 otpcode=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/rdmcli/rdmotpl-helper2.ps1 $otp_id)
 otpcode=$(echo "$otpcode" | tr -d '\n')

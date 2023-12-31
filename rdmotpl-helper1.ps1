@@ -18,6 +18,7 @@ if ($osType -eq "Windows") {
     $rdmsshConfigFolder = "/Users/$currentUserName/rdmcli"
 }
 $dataSource = ""
+$vaultName = ""
 
 # Check if the configuration file exists
 if (Test-Path $rdmsshConfig) {
@@ -35,45 +36,38 @@ if (Test-Path $rdmsshConfig) {
     Write-Host "Configuration file not found: $rdmsshConfig run 'rdmotp config' to create it"
     exit
 }
+
 # Import Module
 Import-Module Devolutions.PowerShell | Out-Null
-Write-Host "Importing ps module..."
 # Set data source
-Get-RDMDataSource | where {$_.Name -eq "$dataSource"} | Set-RDMcurrentDataSource
-Write-Host "Data source set to $dataSource"
-$SelectedSource = Get-RDMCurrentDataSource
-Write-Host "Current data source is $SelectedSource"
+$datasourceID = Get-RDMDataSource -Name $dataSource -ForcePromptAnswer yes 
+$setDataSource = Set-RDMcurrentDataSource -ForcePromptAnswer yes -ID $datasourceID.ID
+start-sleep -s 1
+$currentDataSource = Get-RDMcurrentDataSource
+
+
 # Find sessions
-$sharedSessions = Get-RDMSession -ForcePromptAnswer yes
-Write-Host "Getting sessions..."
-write-host "Found $($sharedSessions.count) sessions"
-# Define initial searches
-$search1 = $sharedSessions | Where-Object { $_.Name -like "*_otp" -or $_.Group -eq "OTP"} | Select-Object Name,Id
-write-host "Found $($search1.count) otp sessions"
-
-# Specify the output file path
-$outputFilePath = Join-Path -Path $rdmsshConfigFolder -ChildPath "rdmotpl-cache.txt"
-
-# Generate the header
-$header = @"
-_______________________________________
-Listing all otp sessions
-_______________________________________
-"@
+$sharedSessions = Get-RDMSession
+$search1 = $sharedSessions | Where-Object { $_.Name -like "*_otp" -or $_.Group -eq "OTP" } | Select-Object Name,Id
 
 # List all otp sessions
-Write-Host -ForegroundColor Green $header  # Display the header
-$result = @($header) + $result  # Add the header to the results
 
 $sessionNumber = 1
-$resultNumber = 1
 
 foreach ($session in $search1) {
     $output = "$sessionNumber. - $($session.Name)`t$($session.Id)"
-    Write-Host -ForegroundColor Green $output
-    $resultVariable = "result$resultNumber"
-    New-Variable -Name $resultVariable -Value $output -Force
-    $result += $resultVariable
+    #Write-Host -ForegroundColor Green $output  # Output each session
+
+    $results += "$output`n"  # Append each session to results
+
     $sessionNumber++
-    $resultNumber++
 }
+
+# Define a secure temporary file
+$tempFile = [System.IO.Path]::GetTempFileName()
+
+# Write the result to the temporary file
+[System.IO.File]::WriteAllText($tempFile, $results)
+
+# Output the temporary file path so that the Bash script knows where to look
+Write-Output $tempFile
