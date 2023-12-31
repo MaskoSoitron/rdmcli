@@ -5,60 +5,42 @@ command_exists() {
   command -v "$1" >/dev/null 2>&1
 }
 
-# Step 1: Check if PowerShell is installed
+# Step 1: Verify pre-requisites
+
+# Check if PowerShell, sshpass, and Devolutions.PowerShell module are installed
+requirements_ok=true
+
+# Check if PowerShell is installed
 if ! command_exists pwsh; then
-  read -p "PowerShell is not installed. Do you want to install it? (y/n): " -r
-  echo    # Move to a new line
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo "Installing PowerShell..."
-    # Add your installation command here (e.g., for Homebrew)
-    # Example: brew install --cask powershell
-    # Replace this line with the appropriate installation command for your system
-    exit
-  else
-    echo "Installation canceled. PowerShell is required to continue."
-    exit 1
-  fi
+  echo "Verifying if PowerShell is installed... Fail"
+  requirements_ok=false
 else
-  echo "PowerShell is installed."
+  echo "Verifying if PowerShell is installed... OK"
 fi
 
-# Step 2: Check if sshpass is installed
+# Check if sshpass is installed
 if ! command_exists sshpass; then
-  read -p "sshpass is not installed. Do you want to install it? (y/n): " -r
-  echo    # Move to a new line
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo "Installing sshpass..."
-    # Add your installation command here (e.g., for Homebrew)
-    # Example: brew install sshpass
-    # Replace this line with the appropriate installation command for your system
-    exit
-  else
-    echo "Installation canceled. sshpass is required to continue."
-    exit 1
-  fi
+  echo "Verifying if sshpass is installed... Fail"
+  requirements_ok=false
 else
-  echo "sshpass is installed."
+  echo "Verifying if sshpass is installed... OK"
 fi
 
-# Step 3: Check if Devolutions.PowerShell module is installed
+# Check if Devolutions.PowerShell module is installed
 if ! pwsh -Command "Get-Module -ListAvailable Devolutions.PowerShell" | grep -q "Devolutions.PowerShell"; then
-  read -p "Devolutions.PowerShell module is not installed. Do you want to install it? (y/n): " -r
-  echo    # Move to a new line
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo "Installing Devolutions.PowerShell module..."
-    # Add your installation command for the module here
-    # Example: pwsh -Command "Install-Module -Name Devolutions.PowerShell -Scope CurrentUser"
-    # Replace this line with the appropriate installation command
-  else
-    echo "Installation canceled. Devolutions.PowerShell module is required to continue."
-    exit 1
-  fi
+  echo "Verifying if Devolutions.PowerShell module is installed... Fail"
+  requirements_ok=false
 else
-  echo "Devolutions.PowerShell module is installed."
+  echo "Verifying if Devolutions.PowerShell module is installed... OK"
 fi
 
-# Step 4: Create the target directory
+# If any requirement check failed, exit with an error message
+if [ "$requirements_ok" = false ]; then
+  echo "Requirements check failed. Please install missing software manually."
+  exit 1
+fi
+
+# Step 2: Create the target directory
 currentUserName=$(whoami)
 targetDir="/Users/$currentUserName/RDMExtras"
 if [ ! -d "$targetDir" ]; then
@@ -68,14 +50,14 @@ else
   echo "Directory $targetDir already exists."
 fi
 
-# Step 5: Copy all files (except install.sh) to the target directory
+# Step 3: Copy all files (except install.sh) to the target directory
 shopt -s extglob
 for file in !(install.sh); do
   cp "$file" "$targetDir"
   echo "$file copied to $targetDir"
 done
 
-# Step 6: Add PATH to .bash_profile if not already present
+# Step 4: Add PATH to .bash_profile if not already present
 bash_profile="/Users/$currentUserName/.bash_profile"
 path_entry='export PATH="~/RDMExtras:$PATH"'
 
