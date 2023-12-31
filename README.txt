@@ -8,10 +8,10 @@ rdmotp searches for all OTP credentials in you RDM client, and then prompts you 
 rdmotp assumes that all OTP credentials have name ending with "_otp", because there is no other automated way to differentiate standard username/password object and otp code object in RDM
 
 ------------------------------------
-INSTALL
+INSTALL & CONFIGURE
 ------------------------------------
 
-install using command
+install using command 
 git clone git@github.com:MaskoSoitron/rdmssh.git
 
 it will create rdmssh folder in current working dir
