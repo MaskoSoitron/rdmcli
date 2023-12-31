@@ -16,7 +16,7 @@ git clone git@github.com:MaskoSoitron/rdmssh.git
 
 it will create rdmssh folder in current working dir
 then
-cd rdmssh && chmod +x ./rdmotp && chmod +x ./rdmssh && chmod +x ./install.sh && ./install.sh
+cd rdmcli && chmod +x ./rdmotp && chmod +x ./rdmssh && chmod +x ./install.sh && ./install.sh
 
 rdmssh config
 rdmssh help
