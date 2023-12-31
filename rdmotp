@@ -17,11 +17,11 @@ show_help() {
 # Function to configure rdmotp
 configure_rdmotp() {
   currentuser=$(whoami)
-  configFilePath="/Users/$currentuser/RDMExtras/rdm.conf"
+  configFilePath="/Users/$currentuser/rdmcli/rdm.conf"
 
-  # Check if RDMExtras directory exists, create if not
-  if [ ! -d "/Users/$currentuser/RDMExtras" ]; then
-    mkdir -p "/Users/$currentuser/RDMExtras"
+  # Check if rdmcli directory exists, create if not
+  if [ ! -d "/Users/$currentuser/rdmcli" ]; then
+    mkdir -p "/Users/$currentuser/rdmcli"
   fi
 
   # Check if the configuration file already exists
@@ -42,7 +42,7 @@ configure_rdmotp() {
 # Function to refresh OTP cache
 refresh_rdmotp_cache() {
   currentuser=$(whoami)
-  cacheFile="/Users/$currentuser/RDMExtras/rdmotp-cache.txt"
+  cacheFile="/Users/$currentuser/rdmcli/rdmotp-cache.txt"
   rm -f "$cacheFile"
   echo "Cache file deleted. You can now run 'rdmotp' to refresh it."
 }
@@ -64,7 +64,7 @@ echo "Listing OTP accounts from RDM..."
 
 # Run the PowerShell script and pass the username and address as arguments
 currentuser=$(whoami)
-cacheFile="/Users/$currentuser/RDMExtras/rdmotp-cache.txt"
+cacheFile="/Users/$currentuser/rdmcli/rdmotp-cache.txt"
 # Check if cache file exists and is not older than 7 days
 if [ -f "$cacheFile" ]; then
   if test "`find "$cacheFile" -mtime +7`"; then
@@ -75,7 +75,7 @@ fi
 
 # Search otp accounts in RDM
 if [ ! -f "$cacheFile" ]; then
-    result=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/RDMExtras/rdmotp-helper1.ps1)
+    result=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/rdmcli/rdmotp-helper1.ps1)
 fi
 # If cache file exists, use it
 if [ -f "$cacheFile" ]; then
@@ -83,7 +83,7 @@ if [ -f "$cacheFile" ]; then
 fi
 
 # Create cache file so next time we don't need to run the script again
-echo "$result" > "/Users/$currentuser/RDMExtras/rdmotp-cache.txt"
+echo "$result" > "/Users/$currentuser/rdmcli/rdmotp-cache.txt"
 
 
 # Parse the result to extract OTP sessions
@@ -111,7 +111,7 @@ else
   done
 fi
 
-otpcode=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/RDMExtras/rdmotp-helper2.ps1 $otp_id)
+otpcode=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/rdmcli/rdmotp-helper2.ps1 $otp_id)
 otpcode=$(echo "$otpcode" | tr -d '\n')
 echo -n "$otpcode" | pbcopy
 echo "OTP code: $otpcode was copied to the clipboard." 

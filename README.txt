@@ -12,9 +12,9 @@ INSTALL & CONFIGURE
 ------------------------------------
 
 install using command 
-git clone git@github.com:MaskoSoitron/rdmssh.git
+git clone git@github.com:MaskoSoitron/rdmcli.git
 
-it will create rdmssh folder in current working dir
+it will create rdmcli folder in current working dir
 then
 cd rdmcli && chmod +x ./rdmotp && chmod +x ./rdmssh && chmod +x ./install.sh && ./install.sh
 

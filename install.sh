@@ -42,7 +42,7 @@ fi
 
 # Step 2: Create the target directory
 currentUserName=$(whoami)
-targetDir="/Users/$currentUserName/RDMExtras"
+targetDir="/Users/$currentUserName/rdmcli"
 if [ ! -d "$targetDir" ]; then
   mkdir -p "$targetDir"
   echo "Created directory: $targetDir"
@@ -59,7 +59,7 @@ done
 
 # Step 4: Add PATH to .bash_profile if not already present
 bash_profile="/Users/$currentUserName/.bash_profile"
-path_entry='export PATH="~/RDMExtras:$PATH"'
+path_entry='export PATH="~/rdmcli:$PATH"'
 
 if ! grep -q "$path_entry" "$bash_profile"; then
   echo "$path_entry" >> "$bash_profile"

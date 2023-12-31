@@ -11,11 +11,11 @@ if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Ru
 }
 # Set rdmsshConfig path based on the operating system
 if ($osType -eq "Windows") {
-    $rdmsshConfig = "C:\Users\$currentUserName\RDMExtras\rdm.conf"
-    $rdmsshConfigFolder = "C:\Users\$currentUserName\RDMExtras"
+    $rdmsshConfig = "C:\Users\$currentUserName\rdmcli\rdm.conf"
+    $rdmsshConfigFolder = "C:\Users\$currentUserName\rdmcli"
 } else {
-    $rdmsshConfig = "/Users/$currentUserName/RDMExtras/rdm.conf"
-    $rdmsshConfigFolder = "/Users/$currentUserName/RDMExtras"
+    $rdmsshConfig = "/Users/$currentUserName/rdmcli/rdm.conf"
+    $rdmsshConfigFolder = "/Users/$currentUserName/rdmcli"
 }
 $dataSource = ""
 $vaultName = ""

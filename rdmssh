@@ -17,11 +17,11 @@ show_help() {
 # Function to configure rdmssh
 configure_rdmssh() {
   currentuser=$(whoami)
-  configFilePath="/Users/$currentuser/RDMExtras/rdm.conf"
+  configFilePath="/Users/$currentuser/rdmcli/rdm.conf"
 
-  # Check if RDMExtras directory exists, create if not
-  if [ ! -d "/Users/$currentuser/RDMExtras" ]; then
-    mkdir -p "/Users/$currentuser/RDMExtras"
+  # Check if rdmcli directory exists, create if not
+  if [ ! -d "/Users/$currentuser/rdmcli" ]; then
+    mkdir -p "/Users/$currentuser/rdmcli"
   fi
 
   # Check if the configuration file already exists
@@ -100,8 +100,8 @@ fi
 echo "Looking for account - $username@$address in RDM"
 
 # Run the PowerShell script and pass the username and address as arguments
-#result=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/RDMExtras/rdmssh-helper.ps1 "$username" "$address")
-tempFilePath=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/RDMExtras/rdmssh-helper.ps1 "$username" "$address")
+#result=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/rdmcli/rdmssh-helper.ps1 "$username" "$address")
+tempFilePath=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/rdmcli/rdmssh-helper.ps1 "$username" "$address")
 result=$(cat "$tempFilePath")
 rm -f "$tempFilePath"
 # Check if the file still exists
