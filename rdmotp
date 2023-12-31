@@ -1,0 +1,117 @@
+#!/bin/bash
+
+## Function to show help information
+show_help() {
+  echo "Usage: rdmotp [command]"
+  echo "If no command is provided, the script will list all OTP sessions in RDM. And prompt the user to choose one."
+  echo "------------------------------------"
+  echo "Requirements: powershell, Devolutions.Powershell module"
+  echo "-----------------------------------"
+  echo "Commands: - rdmotp command"
+  echo "  help: Show this help information."
+  echo "  config: Set up initial configuration."
+  echo "  refresh: Refresh OTP cache."
+  echo "Supported options: None"
+}
+
+# Function to configure rdmotp
+configure_rdmotp() {
+  currentuser=$(whoami)
+  configFilePath="/Users/$currentuser/RDMExtras/rdm.conf"
+
+  # Check if RDMExtras directory exists, create if not
+  if [ ! -d "/Users/$currentuser/RDMExtras" ]; then
+    mkdir -p "/Users/$currentuser/RDMExtras"
+  fi
+
+  # Check if the configuration file already exists
+  if [ -f "$configFilePath" ]; then
+    read -p "Configuration file already exists. Do you want to overwrite it? (y/n): " -n 1 -r
+    echo    # Move to a new line
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo "Configuration not changed."
+      return
+    fi
+  fi
+
+  # Write configuration to the file
+  echo -e "#Type data source name which you want to use (private vault is always available) - only DPS Server data source currently supported\n#Replace defaults with your information\ndatasource = DataSourceName\nvault = VaultName" > "$configFilePath"
+  echo "Configuration file created at $configFilePath"
+}
+
+# Function to refresh OTP cache
+refresh_rdmotp_cache() {
+  currentuser=$(whoami)
+  cacheFile="/Users/$currentuser/RDMExtras/rdmotp-cache.txt"
+  rm -f "$cacheFile"
+  echo "Cache file deleted. You can now run 'rdmotp' to refresh it."
+}
+
+# Check for special commands
+if [ "$1" == "help" ]; then
+  show_help
+  exit 0
+elif [ "$1" == "config" ]; then
+  configure_rdmotp
+  exit 0
+elif [ "$1" == "refresh" ]; then
+  refresh_rdmotp_cache
+  exit 0
+fi
+
+# Print the parsed values (you can remove this in the final version)
+echo "Listing OTP accounts from RDM..."
+
+# Run the PowerShell script and pass the username and address as arguments
+currentuser=$(whoami)
+cacheFile="/Users/$currentuser/RDMExtras/rdmotp-cache.txt"
+# Check if cache file exists and is not older than 7 days
+if [ -f "$cacheFile" ]; then
+  if test "`find "$cacheFile" -mtime +7`"; then
+    echo "Cache file is older than 7 days. Refreshing..."
+    rm "$cacheFile"
+  fi
+fi
+
+# Search otp accounts in RDM
+if [ ! -f "$cacheFile" ]; then
+    result=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/RDMExtras/rdmotp-helper1.ps1)
+fi
+# If cache file exists, use it
+if [ -f "$cacheFile" ]; then
+    result=$(cat "$cacheFile")
+fi
+
+# Create cache file so next time we don't need to run the script again
+echo "$result" > "/Users/$currentuser/RDMExtras/rdmotp-cache.txt"
+
+
+# Parse the result to extract OTP sessions
+otp_sessions=()
+while IFS= read -r line; do
+  if [[ $line =~ ^[0-9]+\.[[:space:]]+-[[:space:]]+(.*)[[:space:]]+([a-f0-9-]+)$ ]]; then
+    otp_sessions+=("${BASH_REMATCH[1]} - ${BASH_REMATCH[2]}")
+  fi
+done <<< "$result"
+
+# Prompt the user to choose an OTP session
+if [ "${#otp_sessions[@]}" -eq 0 ]; then
+  echo "No OTP sessions found. Try running 'rdmotp refresh' to refresh the cache."
+  exit 1
+else
+  echo "Choose an OTP session by entering the corresponding number:"
+  select otp_choice in "${otp_sessions[@]}"; do
+    if [ -n "$otp_choice" ]; then
+      otpID="${otp_choice%% - *}"  # Extract the OTP ID
+      otp_id=$(echo "$otp_choice" | awk '{print $NF}')
+      break
+    else
+      echo "Invalid selection. Please choose a number from the list."
+    fi
+  done
+fi
+
+otpcode=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/RDMExtras/rdmotp-helper2.ps1 $otp_id)
+otpcode=$(echo "$otpcode" | tr -d '\n')
+echo -n "$otpcode" | pbcopy
+echo "OTP code: $otpcode was copied to the clipboard." 

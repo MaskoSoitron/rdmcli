@@ -1,0 +1,141 @@
+#!/bin/bash
+
+## Function to show help information
+show_help() {
+  echo "Usage: rdmssh username@address -p port"
+  echo "Port is optional..."
+  echo "------------------------------------"
+  echo "Requirements: sshpass, powershell, Devolutions.Powershell module"
+  echo "-----------------------------------"
+  echo "Commands: - rdmssh command"
+  echo "  help: Show this help information."
+  echo "  config: Set up initial configuration."
+  echo "On first use, set up using 'rdmssh config'."
+  echo "Supported ssh options: -p port"
+}
+
+# Function to configure rdmssh
+configure_rdmssh() {
+  currentuser=$(whoami)
+  configFilePath="/Users/$currentuser/RDMExtras/rdm.conf"
+
+  # Check if RDMExtras directory exists, create if not
+  if [ ! -d "/Users/$currentuser/RDMExtras" ]; then
+    mkdir -p "/Users/$currentuser/RDMExtras"
+  fi
+
+  # Check if the configuration file already exists
+  if [ -f "$configFilePath" ]; then
+    read -p "Configuration file already exists. Do you want to overwrite it? (y/n): " -n 1 -r
+    echo    # Move to a new line
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo "Configuration not changed."
+      return
+    fi
+  fi
+
+  # Write configuration to the file
+  echo -e "#Type data source name which you want to use (private vault is always available) - only DPS Server data source currently supported\n#Replace defaults with your information\ndatasource = DataSourceName\nvault = VaultName" > "$configFilePath"
+  echo "Configuration file created at $configFilePath"
+}
+# Check if the user provided an argument
+if [ $# -eq 0 ]; then
+  show_help
+  exit 1
+fi
+
+# Check for special commands
+if [ "$1" == "help" ]; then
+  show_help
+  exit 0
+elif [ "$1" == "config" ]; then
+  configure_rdmssh
+  exit 0
+fi
+# Check username
+currentuser=$(whoami)
+
+# Initialize variables
+username=""
+address=""
+port=""
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -p)
+      port="$2"
+      shift # Remove -p from processing
+      shift # Remove the port number from processing
+      ;;
+    *@*)
+      input="$1"
+      username=$(echo "$input" | cut -d '@' -f 1)
+      address=$(echo "$input" | cut -d '@' -f 2)
+      shift # Remove username@address from processing
+      ;;
+    *)
+      # Unknown option
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
+# Check if username and address were provided
+if [ -z "$username" ] || [ -z "$address" ]; then
+  echo "Error: Missing username@address"
+  exit 1
+fi
+
+# Check if port is valid
+if [ -n "$port" ]; then
+  if ! [[ $port =~ ^[0-9]+$ ]] || [ $port -lt 1 ] || [ $port -gt 65535 ]; then
+    echo "Error: Invalid port number"
+    exit 1
+  fi
+fi
+
+# Print the parsed values (you can remove this in the final version)
+echo "Looking for account - $username@$address in RDM"
+
+# Run the PowerShell script and pass the username and address as arguments
+#result=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/RDMExtras/rdmssh-helper.ps1 "$username" "$address")
+tempFilePath=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/RDMExtras/rdmssh-helper.ps1 "$username" "$address")
+result=$(cat "$tempFilePath")
+rm -f "$tempFilePath"
+# Check if the file still exists
+if [ -f "$tempFilePath" ]; then
+    echo "Warning: Failed to delete temporary file $tempFilePath"
+fi
+
+# Check the result of the PowerShell script
+if [[ $result == "No session found"* ]]; then
+  echo "$result"
+  exit 1
+fi
+
+# Check if the result is not empty and does not contain "No session found"
+if [ -n "$result" ] && ! [[ $result == *"No session found"* ]]; then
+  echo "Account found in RDM, connecting now..."
+  if [ -z "$port" ]; then
+      # If port is not provided
+      sshcommand="ssh $username@$address"
+      echo "$sshcommand"
+      sshpass -p"$result" ssh "$username@$address"
+  else
+      # If port is provided
+      sshcommand="ssh $username@$address -p $port"
+      echo "$sshcommand"
+      sshpass -p"$result" ssh "$username@$address" -p "$port"
+  fi
+  exit
+else
+  echo "Something went wrong"
+  echo "Common reasons:"
+  echo "1. The account does not exist in RDM"
+  echo "2. The account exists in RDM but the password is not stored in the Password field"
+  echo "3. Duplicate accounts exist in RDM - in this case rdmssh is using the first account found and this might not be the one you want to use"
+  echo "4. Config file is not set up correctly"
+  exit 1
+fi
