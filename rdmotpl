@@ -109,14 +109,15 @@ else
   echo "Choose an OTP session by entering the corresponding number:"
   select otp_choice in "${otp_sessions[@]}"; do
     if [ -n "$otp_choice" ]; then
-      otpID="${otp_choice%% - *}"  # Extract the OTP ID
-      otp_id=$(echo "$otp_choice" | awk '{print $NF}')
+      otp_id=$(echo "$otp_choice" | awk -F ' - ' '{print $NF}' | awk '{$1=$1};1')  # Extract the OTP ID and trim whitespace
       break
     else
       echo "Invalid selection. Please choose a number from the list."
     fi
   done
 fi
+
+echo "OTP ID: $otp_id"
 
 otpcode=$(pwsh -ExecutionPolicy Bypass -File /Users/$currentuser/rdmcli/rdmotpl-helper2.ps1 $otp_id)
 otpcode=$(echo "$otpcode" | tr -d '\n')

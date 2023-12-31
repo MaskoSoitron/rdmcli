@@ -38,7 +38,9 @@ if (Test-Path $rdmsshConfig) {
 # Import Module
 Import-Module Devolutions.PowerShell | Out-Null
 # Set data source
-Get-RDMDataSource | where {$_.Name -eq "$dataSource"} | Set-RDMcurrentDataSource
+$dsid = Get-RDMDataSource -ForcePromptAnswer yes | where {$_.Name -eq "$dataSource"} | select ID
+Set-RDMCurrentDataSource -ID $dsid.id -ForcePromptAnswer yes
+
 $otpID = $args[0]
 
 # Get OTP from session
