@@ -35,7 +35,7 @@ configure_rdmotp() {
   fi
 
   # Write configuration to the file
-  echo -e "#Type data source name which you want to use (private vault is always available) - only DPS Server data source currently supported\n#Replace defaults with your information\ndatasource = DataSourceName\nvault = VaultName"\npersonaldatasource = PersonalDataSourceName" > "$configFilePath"
+  echo -e "#Type data source name which you want to use (private vault is always available) - only DPS Server data source currently supported\n#Replace defaults with your information\ndatasource = DataSourceName\nvault = VaultName\npersonaldatasource = PersonalDataSourceName" > "$configFilePath"
   echo "Configuration file created at $configFilePath"
 }
 
