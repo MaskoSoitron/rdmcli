@@ -32,7 +32,7 @@ rdmssh config
 rdmssh help
 
 -----------------------------------
-USE
+USE - rdmssh command
 -----------------------------------
 Usage: rdmssh username@address -p port
 Port is optional...
@@ -43,3 +43,14 @@ Commands: - rdmssh command
 On first use, set up using 'rdmssh config'.
 Supported ssh options: -p port
 -----------------------------------
+
+USE - rdmotp command
+-----------------------------------
+Usage: rdmotp [command]
+
+If no command is provided, the script will list all OTP sessions in RDM. And prompt the user to choose one.
+Commands: - rdmotp command
+  help: Show this help information.
+  config: Set up initial configuration.
+  refresh: Refresh OTP cache.
+Supported options: None
