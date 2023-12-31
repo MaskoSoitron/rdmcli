@@ -33,10 +33,23 @@ Commands: - rdmssh command
 On first use, set up using 'rdmssh config'.
 Supported ssh options: -p port
 -----------------------------------
-
 USE - rdmotp command
 -----------------------------------
 Usage: rdmotp [command]
+rdmotp command assumes that your OTP credential entries have _otp suffix in its name
+
+If no command is provided, the script will list all OTP sessions in RDM. And prompt the user to choose one.
+Commands: - rdmotp command
+  help: Show this help information.
+  config: Set up initial configuration.
+  refresh: Refresh OTP cache.
+Supported options: None
+-----------------------------------
+USE - rdmotpl command
+-----------------------------------
+Usage: rdmotpl [command]
+This command looks for OTP credential entries in your local data source specified in rdm.conf
+OTP entries must be in folder Root\OTP, an/or have _otp suffix in its name
 
 If no command is provided, the script will list all OTP sessions in RDM. And prompt the user to choose one.
 Commands: - rdmotp command
