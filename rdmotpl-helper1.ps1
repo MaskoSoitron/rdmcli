@@ -38,16 +38,16 @@ if (Test-Path $rdmsshConfig) {
 # Import Module
 Import-Module Devolutions.PowerShell | Out-Null
 # Set data source
-Get-RDMDataSource | where {$_.Name -eq "$dataSource"} | Set-RDMcurrentDataSource
+Get-RDMDataSource -ForcePromptAnswer yes | where {$_.Name -eq "$dataSource"} | Set-RDMcurrentDataSource -ForcePromptAnswer yes
 # Find sessions
-$sharedSessions = Get-RDMSession  -ForcePromptAnswer yes
+$sharedSessions = Get-RDMSession -ForcePromptAnswer yes
 # Define initial searches
 $search1 = $sharedSessions | Where-Object { $_.Name -like "*_otp" -or $_.Group -eq "OTP"} | Select-Object Name,Id
 
 # List all otp sessions
-Write-Host -ForegroundColor Green "_______________________________________"
-Write-Host -ForegroundColor Blue "Listing all otp sessions"
-Write-Host -ForegroundColor Green "_______________________________________"
+#Write-Host -ForegroundColor Green "_______________________________________"
+#Write-Host -ForegroundColor Blue "Listing all otp sessions"
+#Write-Host -ForegroundColor Green "_______________________________________"
     $sessionNumber = 1
     $resultNumber = 1
     $result = @()
@@ -64,15 +64,3 @@ Write-Host -ForegroundColor Green "_______________________________________"
         }
     }
 
-    if ($search2.Count -gt 0) {
-        foreach ($session in $search2) {
-            $output = "$sessionNumber. - $($session.Name)`t$($session.Id)"
-            Write-Host -ForegroundColor Green $output
-            $resultVariable = "result$resultNumber"
-            New-Variable -Name $resultVariable -Value $output -Force
-            $result += $resultVariable
-            $sessionNumber++
-            $resultNumber++
-        }
-    }
-    Write-Host $results
