@@ -44,7 +44,7 @@ Set-RDMCurrentDataSource -ID $dsid.id -ForcePromptAnswer yes
 $otpID = $args[0]
 
 # Get OTP from session
-$otp = Get-RDMSessionPassword -ID $otpID -AsPlainText
+$otp = Get-RDMSessionPassword -ID "$otpID" -AsPlainText
 if ($null -eq $otp) {
     Write-Host -ForegroundColor Red "failure"
     exit
